@@ -53,7 +53,11 @@ SYSTEM_PARAMS = {'num_heating_path': NUM_HEATING_PATH,
 ## 可调控属性
 BATCH_SIZE = 10
 
-
 ## 打包
+DRL_PARAMS = {}
+
 
 # 神经网络相关参数
+## 打包
+NETWORK_PARAMS = {'batch_size': BATCH_SIZE,
+                  }
