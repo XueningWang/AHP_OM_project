@@ -7,6 +7,7 @@ class AHPSystemSimulator:
         self.time = 0 #初始化时间为0
         self.states = [] #维护一个列表，每个元素是部件的状态
         self.ttf = [] #维护一个列表（或二维数组），每个元素是一个部件在某个状态上的一次寿命
+        #...
 
     def system_init(self): #外部函数前面带下划线，"_func(xxx)"，内部私有函数不带，即"func(xxx)"
         '''对系统整体做初始化：部件状态归为完美状态等'''
