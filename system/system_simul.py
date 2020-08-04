@@ -1,4 +1,7 @@
 #coding: utf-8
+'''系统仿真类实现'''
+
+from utils_sys import *
 
 class AHPSystemSimulator:
     def __init__(self, conf):
