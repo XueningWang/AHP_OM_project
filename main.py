@@ -1,4 +1,5 @@
 #coding: utf-8
+'''主调度函数'''
 
 import logging
 import conf
@@ -11,6 +12,8 @@ logging.basicConfig(level=10) #DEBUG level
 # 按步骤实现核心逻辑
 def initialize_step():
     '''全局初始化'''
+    # TODO:配置初始化:为各部件配置INFO，送入系统仿真类初始化；随后按照agent进行拆分，送入神经网络类初始化。
+
     # 系统初始化
     system_simulator = AHPSystemSimulator() #TODO:补充类初始化需要的参数
     system_simulator.system_init() #TODO:补充系统初始化函数需要的参数

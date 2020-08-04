@@ -1,20 +1,21 @@
 #coding: utf-8
+'''深度神经网络类实现'''
 
 import tensorflow as tf
 import logging
 import sys
 
 sys.path.append('../')
-from utils import *
 import conf
+from utils_net import *
 
 class AgentDeepNetwork:
-    def __init__(self, agent_index):
+    def __init__(self, agent_index, agent_comp_index, agent_state_info, agent_action_info):
         self.conf = conf
         self.agent_index = agent_index
-        self.agent_comp_index = conf.AGENT_COMPONENTS[agent_index]
-        self.agent_state_info = conf.STATE_FEATURE_COLUMNS[agent_index]
-        self.agent_action_info = conf.ACTION_FEATURE_COLUMNS[agent_index]
+        self.agent_comp_index = agent_comp_index
+        self.agent_state_info = agent_state_info
+        self.agent_action_info = agent_action_info
         self.estimator = 0  #神经网络占位
 
     def network_init(self):
@@ -57,7 +58,7 @@ class AgentDeepNetwork:
             )
             self.estimator = estimator
 
-
+    # TODO: 后续改成从FLATTEN后，agent的dict中拿
     def process_one_sample(self, agent_state, agent_action, agent_cost):
         '''对输入的batch sample转换成送入神经网络训练的数据格式(feature & label)'''
 
@@ -83,7 +84,7 @@ class AgentDeepNetwork:
                 feature[a_feature_name] = a_feature_value
 
         # 处理Label
-        label = tf.cast(reward_trans(agent_cost), tf.float32)
+        label = tf.cast(conf.reward_trans_func(agent_cost), tf.float32)
 
         return feature, label
 
