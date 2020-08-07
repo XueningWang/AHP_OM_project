@@ -44,6 +44,15 @@ COMPONENT_TYPE_MAPPING = {
     'R': '旁路阀'
 }
 
+## TODO:设计各种类部件性能函数，即g(S)。按照部件的种类划分（P,Q,H,K,I,J,R）
+COMP_PERFORM_FUNC_P = lambda x: x
+COMP_PERFORM_FUNC_Q = lambda x: x
+COMP_PERFORM_FUNC_H = lambda x: x
+COMP_PERFORM_FUNC_K = lambda x: x
+COMP_PERFORM_FUNC_I = lambda x: x
+COMP_PERFORM_FUNC_J = lambda x: x
+COMP_PERFORM_FUNC_R = lambda x: x
+
 ## agent分布
 AGENT_COMPONENTS = [[2,3,4,5], [6,7,8,9], [12,13,14,15], [16,17,18,19], [0,1,10,11,20,21]]
 

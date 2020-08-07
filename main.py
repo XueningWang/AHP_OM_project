@@ -12,7 +12,9 @@ logging.basicConfig(level=10) #DEBUG level
 # 按步骤实现核心逻辑
 def initialize_step():
     '''全局初始化'''
-    # TODO:配置初始化:为各部件配置INFO，送入系统仿真类初始化；随后按照agent进行拆分，送入神经网络类初始化。
+    # TODO: 8.7 配置初始化:为各部件配置INFO（所有信息update进去：部件信息、nn的fc信息、性能函数），送入系统仿真类初始化；随后按照agent进行拆分，送入神经网络类初始化。
+    def construct_comp_info():
+        return system_comp_info
 
     # 系统初始化
     system_simulator = AHPSystemSimulator() #TODO:补充类初始化需要的参数

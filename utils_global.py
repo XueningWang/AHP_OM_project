@@ -39,7 +39,7 @@ def feature_column_struct(comp_info):
                               "use_embedding": False,
                               "network_usage": ['dense']
                               })
-    comp_action_fc = [
+    comp_action_fc = [ #TODO: 8.7改一版用阈值的action处理方法，这一版保留
         # 第一维：维修活动对系统状态的提升量
         {"component_index": comp_index,
          "feature_name": comp_name + '_deterioration_action',
@@ -52,7 +52,7 @@ def feature_column_struct(comp_info):
          },
         # 第二维：是否进行更换
         {"component_index": comp_index,
-         "feature_name": comp_name + '_isreplecement_action',
+         "feature_name": comp_name + '_isreplece_action',
          "dtype": 'int',
          "method": categorical_binary_method,
          "use_embedding": True,
