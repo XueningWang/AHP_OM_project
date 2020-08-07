@@ -18,7 +18,7 @@ class AgentDeepNetwork:
         self.agent_action_info = agent_action_info
         self.estimator = 0  #神经网络占位
 
-    def network_init(self):
+    def init_network(self):
         '''按照配置，构建一个神经网络结构'''
         # CHECK
         if not len(self.agent_state_info) == len(self.agent_action_info):
@@ -59,7 +59,7 @@ class AgentDeepNetwork:
             self.estimator = estimator
 
     # TODO: 后续改成从FLATTEN后，agent的dict中拿
-    def process_one_sample(self, agent_state, agent_action, agent_cost):
+    def parse_one_instance(self, agent_state, agent_action, agent_cost):
         '''对输入的batch sample转换成送入神经网络训练的数据格式(feature & label)'''
 
         # 处理Feature
@@ -88,20 +88,17 @@ class AgentDeepNetwork:
 
         return feature, label
 
-    def batch_train(self):
+    def exec_train(self):
         '''训练模型的核心逻辑'''
 
     def save_model(self):
         '''模型固化或以现有参数持久化，如果不做任何操作就能保存现有参数，这个就不用了'''
 
-    def save_batch_sample(self):
-        '''保存输入的batch sample，后续可用于memory replay'''
-
-    def memory_replay(self):
+    def get_replay_memory(self):
         '''从储存的过去SAMPLE中拿一部分，merge到batch_train中训练'''
 
-    def _batch_train(self):
-        '''给定一个batch的样本，对神经网络训练并保存模型参数，以备后面预测用'''
+    def _train(self):
+        '''给定一个batch的样本，对神经网络训练并保存模型参数，以备后面预测用；试情况做memory replay'''
 
     def _predict(self):
         '''给定一个输入，返回输出'''
