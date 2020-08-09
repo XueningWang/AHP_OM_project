@@ -2,8 +2,11 @@
 '''提供深度神经网络相关的子函数'''
 
 import tensorflow as tf
+import pandas as pd
 import logging
+import sys
 
+sys.path.append('../')
 import conf
 
 # 特征数据处理方法定义

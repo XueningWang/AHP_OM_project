@@ -16,7 +16,7 @@ def weibull_rand(alpha=1,beta=1):
     return beta*math.pow(-np.log(u),1/alpha)
 
 # 随机数生成器
-def generate_random_lifetime(distribution, type='single', num=1, **dist_args):
+def generate_random_lifetime(distribution, dist_args, type='single', num=1):
     '''给出一个部件在某个状态上的寿命(WEIBULL)或疏水单位量两次产生的间隔时间(EXPONENTIAL)'''
 
     '''参数类型：distribution是字符串，="weibull"OR"exp"
@@ -26,8 +26,7 @@ def generate_random_lifetime(distribution, type='single', num=1, **dist_args):
                 num默认=1，在type = "batch"的时候，代表一次生成几个数'''
     '''输出参数类型：type = "single"时是一个值，type = "batch"时是一个list'''
     if distribution == "exp":
-        for a, b in dist_args.items():
-            lam = dist_args['lambda']
+        lam = dist_args['lambda'] #NOTE:8.7精简了一下传参方式，测试通过
 
         if type == 'single':
             value = exp_rand(lam)
@@ -37,9 +36,8 @@ def generate_random_lifetime(distribution, type='single', num=1, **dist_args):
                 value[i] = exp_rand(lam)
 
     elif distribution == "weibull":
-        for a, b in dist_args.items():
-            alpha = dist_args['alpha']
-            beta = dist_args['beta']
+        alpha = dist_args['alpha']
+        beta = dist_args['beta']
 
         if type == 'single':
             value = weibull_rand(alpha, beta)
@@ -50,3 +48,11 @@ def generate_random_lifetime(distribution, type='single', num=1, **dist_args):
     else:
         value = -1
     return value
+
+if __name__ == "__main__":
+    expp = {'lambda': 1}
+    weibullp = {"alpha": 1, "beta": 2}
+    v = generate_random_lifetime('exp', expp, 'batch', 2)
+    u = generate_random_lifetime('weibull', weibullp, 'batch', 3)
+    print(v)
+    print(u)
