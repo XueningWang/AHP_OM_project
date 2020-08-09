@@ -5,6 +5,7 @@ import logging
 import conf
 from network.agent_nn import AgentDeepNetwork
 from system.system_simul import AHPSystemSimulator
+from utils_global import *
 
 # 配置日志输出
 logging.basicConfig(level=10) #DEBUG level
@@ -12,19 +13,30 @@ logging.basicConfig(level=10) #DEBUG level
 # 按步骤实现核心逻辑
 def initialize_step():
     '''全局初始化'''
-    # TODO: 8.7 配置初始化:为各部件配置INFO（所有信息update进去：部件信息、nn的fc信息、性能函数），送入系统仿真类初始化；随后按照agent进行拆分，送入神经网络类初始化。
     def construct_comp_info():
-        return system_comp_info
+        sys_comp_info = conf.SYSTEM_COMPONENT
+        sys_comp_info = add_use_embed_info(sys_comp_info)
+        for i in range(len(sys_comp_info)):
+            comp_info = sys_comp_info[i]
+            comp_state_fc, comp_action_fc = feature_column_struct(comp_info)
+            sys_comp_info[i]['comp_state_fc'] = comp_state_fc
+            sys_comp_info[i]['comp_action_fc'] = comp_action_fc
+        return sys_comp_info
 
     # 系统初始化
-    system_simulator = AHPSystemSimulator() #TODO:补充类初始化需要的参数
+    sys_comp_info = construct_comp_info()
+    system_simulator = AHPSystemSimulator(sys_comp_info) #TODO:补充类初始化需要的参数
     system_simulator.system_init() #TODO:补充系统初始化函数需要的参数
 
     # 各AGENT的神经网络初始化
-    num_agent = len(conf.AGENT_COMPONENTS)
+    agents = conf.AGENT_COMPONENTS
+    num_agent = len(agents)
     agent_nns = []
-    for agent_index in num_agent:
-        agent_nns.append(AgentDeepNetwork(agent_index))
+    for agent_index in range(num_agent):
+        agent_comp_info = []
+        for comp_index in agents[agent_index]:
+            agent_comp_info.append(sys_comp_info[comp_index])
+        agent_nns.append(AgentDeepNetwork(agent_index, agents[agent_index], agent_comp_info))
         agent_nns[agent_index].network_init()
 
 def simulation_step(system_action):

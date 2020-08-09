@@ -74,6 +74,12 @@ WD_L2_REGULAR_STRENGTH = 0.001
 # DRL训练
 ## 训练超参
 BATCH_SIZE = 10
+TRAIN_EPOCHS = 1
+IS_SHUFFLE = True
+SHUFFLE_BUFFER_SIZE = 10000
+TRAIN_VERBOSE_STEP = 10
+MODEL_DIRS = ['models/model_agent_' + str(i+1) for i in range(len(AGENT_COMPONENTS))]
+
 TERMINATION_NUM_ITERATION = 1000
 
 ## Termination条件
