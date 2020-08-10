@@ -105,31 +105,14 @@ def map_flatten_dict(organized_sample_one):
     comp_states_value = organized_sample_one[0]
     comp_actions_value = organized_sample_one[1]
 
-    # DEBUG
-    print(flatten_colname_list)
-
     # DOUBLE CHECK
     if not len(comp_states_value) == len(comp_actions_value):
         logging.error("Unequal state and action info dimension during flatten mapping. Fix it now!")
 
-    flattened_dict = {}
     value_list = [sv for svs in comp_states_value for sv in svs] + [av for avs in comp_actions_value for av in avs]
-    for i in range(len(value_list)):
-        flattened_dict[flatten_colname_list[i]] = value_list[i]
-
-    # for comp_index in range(len(comp_states_value)):
-    #     comp_info = conf.SYSTEM_COMPONENT[comp_index]
-    #     state_info, action_info = feature_column_struct(comp_info)
-    #
-    #     # NOTE: flatten数据列名的定义 TODO:这一步放到main函数的construct_comp_info里面去做，同时让map函数能够取到列名（先state再action）
-    #     column_prefix = str(comp_index)+'_'
-    #     for state_index in range(len(comp_states_value)):
-    #         flattened_dict[column_prefix + str(state_index) + '_' + state_info[state_index]['feature_name']] = comp_states_value[comp_index][state_index]
-    #     for action_index in range(len(comp_actions_value)):
-    #         flattened_dict[column_prefix + str(action_index) + '_' + state_info[action_index]['feature_name']] = comp_actions_value[comp_index][action_index]
     if len(organized_sample_one) > 2:  #带有reward项
-        flattened_dict['reward'] = organized_sample_one[2]
-    return flattened_dict
+        value_list.extend(organized_sample_one[2])
+    return value_list
 
 def sample_parse_flatten(organized_sample, flatten_colname_list, parse_batch_size=1):
     '''把仿真中，系统状态和系统行动flatten用于做存储，column_name的命名开头为 compindex_dimindex_feature_name，方便做反解析'''
@@ -138,8 +121,34 @@ def sample_parse_flatten(organized_sample, flatten_colname_list, parse_batch_siz
         flattened_sample = map_flatten_dict(organized_sample)
     else:
         flattened_sample = map(map_flatten_dict, organized_sample)
-    flattened_sample_df = pd.DataFrame.from_dict(flattened_sample)
+    flattened_sample_df = pd.DataFrame(flattened_sample)
+    flattened_sample_df.columns = flatten_colname_list
+
+    #DEBUG
+    print("Raw value:")
+    print(organized_sample)
+    print(flattened_sample_df)
+
     return flattened_sample_df
+
+def split_agent_flatten_sample(flattened_sample_df, flatten_colname_list, agents, comp_agent_mapping):
+    '''将样本也按照agent区分的形式，用columns=[]进行切片'''
+    agent_colname_list = [[]]*len(agents)
+    for colname in flatten_colname_list:
+        comp_index = colname.split('_')[0]
+        agent_index = comp_agent_mapping[comp_index]
+        agent_colname_list[agent_index].append(colname)
+    agent_flatten_df = []
+    for agent_colnames in agent_colname_list:
+        agent_flatten_df.append(flattened_sample_df.loc[:, agent_colnames])
+    return agent_flatten_df
+
+def revert_agent_comp_mapping(agents):
+    comp_agent_mapping = {}
+    for a in agents:
+        for j in a:
+            comp_agent_mapping[str(j)] = a
+    return comp_agent_mapping
 
 # 对component config info添加是否需要embedding信息
 def use_embedding_condition(comp_info):
