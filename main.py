@@ -16,15 +16,26 @@ def initialize_step():
     def construct_comp_info():
         sys_comp_info = conf.SYSTEM_COMPONENT
         sys_comp_info = add_use_embed_info(sys_comp_info)
+        s_flatten_colname_list = []
+        a_flatten_colname_list = []
         for i in range(len(sys_comp_info)):
             comp_info = sys_comp_info[i]
             comp_state_fc, comp_action_fc = feature_column_struct(comp_info)
             sys_comp_info[i]['comp_state_fc'] = comp_state_fc
             sys_comp_info[i]['comp_action_fc'] = comp_action_fc
-        return sys_comp_info
+            for j in range(len(comp_state_fc)):
+                s_column_name = str(i) + '_' + str(j) + '_' + comp_state_fc[j]['feature_name']
+                comp_state_fc[j]["flatten_column_name"] = s_column_name
+                s_flatten_colname_list.append(s_column_name)
+            for k in range(len(comp_action_fc)):
+                a_column_name = str(i) + '_' + str(k) + '_' + comp_action_fc[k]['feature_name']
+                comp_action_fc[k]["flatten_column_name"] = a_column_name
+                a_flatten_colname_list.append(a_column_name)
+        flatten_colname_list = s_flatten_colname_list + a_flatten_colname_list
+        return sys_comp_info, flatten_colname_list
 
     # 系统初始化
-    sys_comp_info = construct_comp_info()
+    sys_comp_info, flatten_colname_list = construct_comp_info()
     system_simulator = AHPSystemSimulator(sys_comp_info) #TODO:补充类初始化需要的参数
     system_simulator.system_init() #TODO:补充系统初始化函数需要的参数
 
@@ -50,4 +61,7 @@ def sample_collect_step():
 
 def network_training_step():
     '''样本凑够一个batch后，送入神经网络进行训练'''
+    #TODO:后续需要对flatten的df数据按照agent进行拆分
+    comp_agent_mapping = revert_agent_comp_mapping(conf.AGENT_COMPONENTS)
+    #split_agent_flatten_sample
 

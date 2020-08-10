@@ -31,7 +31,7 @@ class AgentDeepNetwork:
             dense_fc = []
             for comp_info in self.agent_comp_info:
                 for info in [comp_info['comp_state_fc'], comp_info['comp_action_info']]:
-                    feature_name = info['feature_name']  # TODO: 8.7 要改动成加上了前面index的形式
+                    feature_name = info['flatten_column_name']
                     method = info['method']
                     bucket_size = info.get('int_bucket_size', 0)
                     network_usage = info['network_usage']
