@@ -111,7 +111,7 @@ def map_flatten_dict(organized_sample_one):
 
     value_list = [sv for svs in comp_states_value for sv in svs] + [av for avs in comp_actions_value for av in avs]
     if len(organized_sample_one) > 2:  #带有reward项
-        value_list = value_list.extend(organized_sample_one[2])
+        value_list.extend(organized_sample_one[2])
     return value_list
 
 def sample_parse_flatten(organized_sample, flatten_colname_list, parse_batch_size=1):
