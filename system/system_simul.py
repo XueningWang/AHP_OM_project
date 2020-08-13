@@ -14,7 +14,10 @@ class AHPSystemSimulator:
         self.ttf = []  # 维护一个列表，每个元素是一个部件在此时某状态上的寿命（由随机数生成），用于决定下一个系统决策时间点
         # 仿真过程初始化
         self.time = 0 #初始化时间为0
-        #...
+        # wxn预留，后续可结合
+        self.current_state = []
+        self.current_action_best = []
+        self.current_cost = []
 
     # 系统仿真相关
     # 功能1
@@ -43,7 +46,6 @@ class AHPSystemSimulator:
     # 输入与输出样本数据、与神经网络沟通相关
     def update_feasible_action(self): #wxn
         '''拿到一个决策时间点的系统状态后，将可行的action遍历，与状态拼成多个待预测的测试集样本'''
-        # 调用util_global中的sample_parse_flatten()函数，将orgainized的格式转化成flatten的格式输出
 
     # 功能2
     def calc_best_action(self): #wxn
@@ -62,6 +64,7 @@ class AHPSystemSimulator:
         # 顺序调用以下函数：calc_best_action, exec_action, calc_cost
 
     # 功能3
-    def _generate_one_sample(self): #wxn
-        '''根据一个系统状态、一次施加的行动以及拿到的成本，变成一条结构化的数据（比如list或dict）'''
-        # 将每一步exec_action时所用的那个最好的action，和本次的系统状态、cost放到一起，将数据格式由organized格式处理成flatten格式输出
+    def _generate_one_sample(self):
+        '''根据一个系统状态、一次施加的行动以及拿到的成本，变成一条flatten形式数据'''
+        organized_sample = [self.current_state, self.current_action_best, self.current_cost]
+        return organized_sample
