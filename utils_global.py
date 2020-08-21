@@ -138,10 +138,11 @@ def split_agent_flatten_sample(flattened_sample_df, flatten_colname_list, agents
         comp_index = colname.split('_')[0]
         agent_index = comp_agent_mapping[comp_index]
         agent_colname_list[agent_index].append(colname)
-    agent_flatten_df = []
+        #TODO：8.21 处理一下如果有'reward'这一列，把这一列拼在所有agent feature数据的最后一列（colname加入就行了）
+    agent_flatten_df_list = []
     for agent_colnames in agent_colname_list:
-        agent_flatten_df.append(flattened_sample_df.loc[:, agent_colnames])
-    return agent_flatten_df
+        agent_flatten_df_list.append(flattened_sample_df.loc[:, agent_colnames])
+    return agent_flatten_df_list
 
 def revert_agent_comp_mapping(agents):
     comp_agent_mapping = {}
