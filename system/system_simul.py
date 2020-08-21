@@ -43,11 +43,6 @@ class AHPSystemSimulator:
         '''由系统各部件状态计算系统水量、加热效率这两个指标'''
 
     # 功能2
-    # 输入与输出样本数据、与神经网络沟通相关
-    def update_feasible_action(self): #wxn
-        '''拿到一个决策时间点的系统状态后，将可行的action遍历，与状态拼成多个待预测的测试集样本'''
-
-    # 功能2
     def calc_best_action(self): #wxn
         '''拿到各测试集样本的近似Q value（即神经网络预测结果）后，根据value在各种action中选择一个action'''
         # 返回的action是orgainzed格式
@@ -58,8 +53,15 @@ class AHPSystemSimulator:
         '''产出每个决策时间点，将可行action与系统状态拼接后返回'''
         # 顺序调用以下函数：update_next_epoch, update_feasible_action
 
+    # 功能2
+    # 输入与输出样本数据、与神经网络沟通相关
+    def _update_feasible_action(self):  # wxn
+        '''拿到一个决策时间点的系统状态后，将可行的action遍历，与状态拼成多个待预测的测试集样本'''
+        test_data = 0
+        return test_data
+
     # 功能1
-    def _progress_one_action(self):
+    def _progress_one_action(self, selected_action):
         '''拿到神经网络的预测结果后，选择action并执行，求算出系统成本'''
         # 顺序调用以下函数：calc_best_action, exec_action, calc_cost
 
