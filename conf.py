@@ -82,13 +82,13 @@ SHUFFLE_BUFFER_SIZE = 10000
 TRAIN_VERBOSE_STEP = 10
 MODEL_DIRS = ['models/model_agent_' + str(i+1) for i in range(len(AGENT_COMPONENTS))]
 
-TERMINATION_NUM_ITERATION = 1000
-
 ## Termination条件
-def is_terminate(num_iteration, type = 'num_iteration'):
+MAX_TERMINATION_NUM_ITERATION = 100
+TERMINATION_CRITERION = 'num_iteration'
+def is_terminate(num_iteration, criterion = 'num_iteration', max_termination_num_iteration = 100000):
     # 以迭代次数为标准结束循环
-    if type == 'num_iteration':
-        if num_iteration > TERMINATION_NUM_ITERATION:
+    if criterion == 'num_iteration':
+        if num_iteration > max_termination_num_iteration:
             return True
     # TODO:其他标准
     # if some_condition
@@ -106,3 +106,7 @@ ACTION_DETER_EMBED_VECSIZE = STATE_DETER_BUCKET_SIZE
 ACTION_REPLACE_EMBED_VECSIZE = 4
 
 use_embed_condition = lambda info: info['component_type'] in ['H', 'K', 'R']
+
+## 根据value选择行动策略
+ACTION_SELECT_STRATEGY = 'e-greedy'
+ACTION_SELECT_PARAMS = {'e': 0.1}

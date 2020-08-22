@@ -23,7 +23,7 @@ class AgentDeepNetwork:
 
     def init_network(self):
         '''按照配置，构建一个神经网络结构'''
-        # TODO: 8.7 探索一下模型续训需要的config
+        # TODO: 8.21 配置一下模型续训需要的config
 
         # 构建网络结构
         if self.conf.NN_STRUCTURE_VERSION == 'wide_and_deep_v1':
@@ -118,7 +118,7 @@ class AgentDeepNetwork:
         self.current_test_data_df = test_data # 使测试数据可取到
         pred_y = self.estimator.predict(input_fn=self.test_input_fn)
 
-        #DEBUG
+        #CHECK: 返回的应当是python list格式
         print(pred_y)
 
         return pred_y

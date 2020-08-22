@@ -33,6 +33,7 @@ class AHPSystemSimulator:
     def exec_action(self, action):
         '''拿到对每个部件的action之后，对系统部件做状态转移等一系列更新，计算成本'''
         # action是organized格式
+        # 8.21更新：action是dict类型，即{comp_index : [comp_action]}
 
     # 功能1
     def calc_cost(self):
@@ -42,31 +43,25 @@ class AHPSystemSimulator:
     def calc_system_performance(self):
         '''由系统各部件状态计算系统水量、加热效率这两个指标'''
 
-    # 功能2
-    def calc_best_action(self): #wxn
-        '''拿到各测试集样本的近似Q value（即神经网络预测结果）后，根据value在各种action中选择一个action'''
-        # 返回的action是orgainzed格式
-
     # 对外接口
     # 功能2
     def _progress_one_epoch(self):
         '''产出每个决策时间点，将可行action与系统状态拼接后返回'''
-        # 顺序调用以下函数：update_next_epoch, update_feasible_action
+        # 顺序调用以下函数：update_next_epoch
+        # 应当返回system_states
 
     # 功能2
     # 输入与输出样本数据、与神经网络沟通相关
     def _update_feasible_action(self):  # wxn
-        '''拿到一个决策时间点的系统状态后，将可行的action遍历，与状态拼成多个待预测的测试集样本'''
-        test_data = 0
-        return test_data
+        '''拿到一个决策时间点的系统状态后，将每个维度可行的action遍历'''
+
+        # 返回值与system org action同形状，每个action位点上都是一个所有feasible的值的list
+        feasible_actions = 0
+        return feasible_actions
 
     # 功能1
     def _progress_one_action(self, selected_action):
         '''拿到神经网络的预测结果后，选择action并执行，求算出系统成本'''
-        # 顺序调用以下函数：calc_best_action, exec_action, calc_cost
-
-    # 功能3
-    def _generate_one_sample(self):
-        '''根据一个系统状态、一次施加的行动以及拿到的成本，变成一条flatten形式数据'''
-        organized_sample = [self.current_state, self.current_action_best, self.current_cost]
-        return organized_sample
+        # 顺序调用以下函数: exec_action, calc_cost; 选择最佳策略的部分拿到main中做了
+        reward = 0
+        return reward

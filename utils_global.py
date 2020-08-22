@@ -3,6 +3,7 @@
 
 import pandas as pd
 import logging
+import random
 
 import conf
 from network.utils_net import *
@@ -114,7 +115,7 @@ def map_flatten_dict(organized_sample_one):
         value_list.extend(organized_sample_one[2])
     return value_list
 
-def sample_parse_flatten(organized_sample, flatten_colname_list, parse_batch_size=1):
+def sample_parse_flatten(organized_sample, flatten_colname_list, parse_batch_size=10):
     '''把仿真中，系统状态和系统行动flatten用于做存储，column_name的命名开头为 compindex_dimindex_feature_name，方便做反解析'''
     #organized_sample 是一个list，包含state+action+reward
     if parse_batch_size == 1: #如果单个样本（是个list），直接简单处理
@@ -132,13 +133,18 @@ def sample_parse_flatten(organized_sample, flatten_colname_list, parse_batch_siz
     return flattened_sample_df
 
 def split_agent_flatten_sample(flattened_sample_df, flatten_colname_list, agents, comp_agent_mapping):
-    '''将样本也按照agent区分的形式，用columns=[]进行切片'''
+    '''将训练样本按照agent区分的形式，用columns=[]进行切片'''
     agent_colname_list = [[]]*len(agents)
+    with_reward = False
+    if 'reward' in flattened_sample_df.columns.values.tolist():
+        with_reward = True
     for colname in flatten_colname_list:
         comp_index = colname.split('_')[0]
         agent_index = comp_agent_mapping[comp_index]
         agent_colname_list[agent_index].append(colname)
-        #TODO：8.21 处理一下如果有'reward'这一列，把这一列拼在所有agent feature数据的最后一列（colname加入就行了）
+        # 添加reward这一列
+        if with_reward:
+            agent_colname_list.append('reward')
     agent_flatten_df_list = []
     for agent_colnames in agent_colname_list:
         agent_flatten_df_list.append(flattened_sample_df.loc[:, agent_colnames])
@@ -146,9 +152,11 @@ def split_agent_flatten_sample(flattened_sample_df, flatten_colname_list, agents
 
 def revert_agent_comp_mapping(agents):
     comp_agent_mapping = {}
+    a_cnt = 0
     for a in agents:
         for j in a:
-            comp_agent_mapping[str(j)] = a
+            comp_agent_mapping[str(j)] = a_cnt
+        a_cnt += 1
     return comp_agent_mapping
 
 # 对component config info添加是否需要embedding信息
@@ -162,6 +170,17 @@ def add_use_embed_info(system_component_info):
         if use_embedding_condition(system_component_info[i]):
             system_component_info[i]['use_embedding'] = True
     return system_component_info
+
+def select_best_action_agent(agent_pred_result, params, strategy = 'e-greedy'):
+    '''对每个agent的一批action做选择，返回index'''
+    if strategy == 'e-greedy':
+        random_e = params['e']
+        rand = random.random()
+        if rand > random_e: #选cost最小的
+            agent_best_action_index = agent_pred_result.index(min(agent_pred_result))
+        else: #随机选一个
+            agent_best_action_index = random.randrange(0, len(agent_pred_result))
+    return agent_best_action_index
 
 # 暂时弃用的action设计方法
 # comp_action_fc = [
