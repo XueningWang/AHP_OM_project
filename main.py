@@ -2,7 +2,9 @@
 '''主调度函数'''
 
 import logging
+import pandas as pd
 import itertools
+import random
 
 import conf
 from network.agent_nn import AgentDeepNetwork
@@ -65,14 +67,18 @@ class MaintainWorker:
         self.agent_nn_batch_size = conf.BATCH_SIZE
         self.termination_criterion = conf.TERMINATION_CRITERION
         self.max_termination_num_iteration = conf.MAX_TERMINATION_NUM_ITERATION
-
-    def initialization(self):
-        '''全局初始化'''
         # 部件信息初始化
         self.sys_comp_info, self.comp_agent_mapping, self.flatten_colname_list, self.flatten_colname_list_agents = construct_comp_info()
         self.num_comp = len(self.sys_comp_info)
-        self.length_of_comp_action = len(self.sys_comp_info[0]['comp_action_fc']) #CHECK: 一个action的维度，应该是6
+        self.length_of_comp_action = len(self.sys_comp_info[0]['comp_action_fc'])  # CHECK: 一个action的维度，应该是6
+        # 历史样本存储和回放
+        self.history_memory_df = pd.DataFrame(columns = self.flatten_colname_list.extend(['total_epoch', 'train_epoch']))
+        self.replay_one_batch_size = conf.REPLAY_ONE_BATCH_SIZE
+        self.replay_batch_num = conf.REPLAY_BATCH_NUM
+        self.replay_after_epoch = conf.REPLAY_AFTER_EPOCH
 
+    def initialization(self):
+        '''全局初始化'''
         # 系统模块初始化
         self.system_simulator = AHPSystemSimulator(self.sys_comp_info) #TODO:补充类初始化需要的参数
         self.system_simulator.system_init() #TODO:补充系统初始化函数需要的参数
@@ -160,18 +166,28 @@ class MaintainWorker:
 
     def memory_replay(self):
         '''从历史样本池中拿一部分连续样本返回'''
-        # TODO: 8.21 写与文件打交道的处理
+        replay_train_sample_df = pd.DataFrame(columns=self.flatten_colname_list.extend(['total_epoch', 'train_epoch']))
+        current_memory_size = self.history_memory_df.shape[0]
+        for i in range(self.replay_batch_num):
+            index = random.randrange(0, current_memory_size)
+            replay_batch_df = self.history_memory_df.iloc[index: min(index+self.replay_one_batch_size, current_memory_size), :] #CHECK:左右开闭情况
+            replay_train_sample_df = pd.concat([replay_train_sample_df, replay_batch_df], axis=0)
         return replay_train_sample_df
 
     def network_train(self):
         '''样本凑够一个batch后，送入神经网络进行训练'''
         flatten_train_sample_df = sample_parse_flatten(self.current_sample_collection_org)
-        # TODO: 8.21 将样本df存入文件，存时加一个global step列(epoch值和训练次数)标示样本用于训练的时刻
+        # memory replay
+        if self.total_epoch > self.replay_after_epoch:
+            flatten_train_sample_df = pd.concat([flatten_train_sample_df, self.memory_replay()], axis=0)
         flatten_train_sample_agents_df_list = split_agent_flatten_sample(flatten_train_sample_df, self.flatten_colname_list, self.agents, self.comp_agent_mapping)
         agent_train_index = 0
         for an in self.agent_nns:
             an._train(flatten_train_sample_agents_df_list[agent_train_index])
             agent_train_index += 1
+        flatten_train_sample_df['total_epoch'] = self.total_epoch
+        flatten_train_sample_df['train_epoch'] = self.train_epoch
+        self.history_memory_df = pd.concat([self.history_memory_df, flatten_train_sample_df], axis=0)
 
     def _go_to_work(self):
         #初始化
@@ -179,14 +195,16 @@ class MaintainWorker:
 
         #执行系统仿真、神经网络训练
         self.total_epoch = 0
+        self.train_epoch = 0
         _, system_states, feasible_actions = self.simulation() #第一步冷启动
         while not is_terminate(self.total_epoch, self.termination_criterion, self.max_termination_num_iteration):
+            self.total_epoch += 1 #第一步索引是epoch=1
             selected_action_dict = self.decision(system_states, feasible_actions)
             reward, system_states, feasible_actions = self.simulation(selected_action_dict)
             self.sample_collect(system_states, selected_action_dict, reward)
             if total_epoch % self.agent_nn_batch_size == 0:
+                self.train_epoch += 1
                 self.network_train()
-            self.total_epoch += 1
 
     def _report_kpi(self):
         # TODO: 对关键指标做埋点，输出结果数值和指标

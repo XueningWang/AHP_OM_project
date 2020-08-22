@@ -23,8 +23,6 @@ class AgentDeepNetwork:
 
     def init_network(self):
         '''按照配置，构建一个神经网络结构'''
-        # TODO: 8.21 配置一下模型续训需要的config
-
         # 构建网络结构
         if self.conf.NN_STRUCTURE_VERSION == 'wide_and_deep_v1':
             sparse_fc = []
@@ -45,6 +43,14 @@ class AgentDeepNetwork:
                     if 'dense' in network_usage:
                         dense_fc.append(feature_column)
 
+            # 配置神经网络训练config
+            config = tf.estimator.RunConfig(
+                keep_checkpoint_max=3,
+                model_dir=self.model_dir,
+                save_checkpoints_secs=600,
+                save_summary_steps=100,
+                log_step_count_steps=100 #CHECK: 具体的输出便捷程度
+            )
             # 配置神经网络结构
             estimator = tf.estimator.DNNLinearCombinedRegressor(
                 # model directory
@@ -59,6 +65,7 @@ class AgentDeepNetwork:
                     learning_rate = conf.WD_LEARNING_RATE,
                     l1_regularization_strength=conf.WD_L1_REGULAR_STRENGTH,
                     l2_regularization_strength=conf.WD_L2_REGULAR_STRENGTH),
+                config=config
             )
             self.estimator = estimator
 

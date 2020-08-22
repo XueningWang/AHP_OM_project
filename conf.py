@@ -110,3 +110,8 @@ use_embed_condition = lambda info: info['component_type'] in ['H', 'K', 'R']
 ## 根据value选择行动策略
 ACTION_SELECT_STRATEGY = 'e-greedy'
 ACTION_SELECT_PARAMS = {'e': 0.1}
+
+## 历史样本存储和回放
+REPLAY_ONE_BATCH_SIZE = 10 #for test
+REPLAY_BATCH_NUM = 3 #for test
+REPLAY_AFTER_EPOCH = 50 #for test
