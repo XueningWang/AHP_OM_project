@@ -54,6 +54,13 @@ def construct_comp_info():
         s_flatten_colname_list_agent[comp_agent_index].extend(s_flatten_colname_list[i])
         a_flatten_colname_list_agent[comp_agent_index].extend(a_flatten_colname_list[i])
     flatten_colname_list_agents = [[s_cn for s_cn in s_flatten_colname_list_agent[i]] + [a_cn for a_cn in a_flatten_colname_list_agent[i]] for i in range(num_agents)]
+
+    # DEBUG
+    print("construct_comp_info preview - sys_comp_info")
+    for ci in sys_comp_info:
+        print("Comp Index: ", ci['index'])
+        print(ci)
+
     return sys_comp_info, comp_agent_mapping, flatten_colname_list, flatten_colname_list_agents
 
 # 按单个步骤进行实现，组织成类
@@ -202,7 +209,7 @@ class MaintainWorker:
             selected_action_dict = self.decision(system_states, feasible_actions)
             reward, system_states, feasible_actions = self.simulation(selected_action_dict)
             self.sample_collect(system_states, selected_action_dict, reward)
-            if total_epoch % self.agent_nn_batch_size == 0:
+            if self.total_epoch % self.agent_nn_batch_size == 0:
                 self.train_epoch += 1
                 self.network_train()
 
@@ -215,5 +222,5 @@ class MaintainWorker:
 
 if __name__ == "__main__":
     maintain_worker = MaintainWorker()
-    maintain_worker._go_to_work()
-    maintain_worker._report_kpi()
+    # maintain_worker._go_to_work()
+    # maintain_worker._report_kpi()
