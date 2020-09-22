@@ -56,7 +56,12 @@ COMP_PERFORM_FUNC_R = lambda x: x
 ## agent分布
 AGENT_COMPONENTS = [[2,3,4,5], [6,7,8,9], [12,13,14,15], [16,17,18,19], [0,1,10,11,20,21]]
 
-## TODO:寿命分布相关参数
+## TODO:寿命分布相关参数矫正
+WEIBULL_BETA = {'P': 0.1, 'Q': 0.1, 'H': 0.2,'K': 0.3, 'I': 0.3, 'J': 0.3, 'R': 0.1}
+WEIBULL_THETA = {'P': 0.01, 'Q': 0.01, 'H': 0.01,'K': 0.01, 'I': 0.01, 'J': 0.01, 'R': 0.01}
+FAILURE_RATE_PARMS_a = 0.05
+FAILURE_RATE_PARMS_b = 1.05
+INFINITE_TIME = 99999
 
 ## TODO:成本相关参数
 def cost_func(x):

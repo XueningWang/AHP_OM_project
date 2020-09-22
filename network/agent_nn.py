@@ -7,7 +7,7 @@ import sys
 
 sys.path.append('../')
 import conf
-from utils_net import *
+from .utils_net import *
 
 class AgentDeepNetwork:
     def __init__(self, agent_index, agent_comp_index, agent_comp_info):
@@ -107,9 +107,6 @@ class AgentDeepNetwork:
                                          buffer_size=self.shuffle_buffer_size)
     def test_input_fn(self): # 包装test input function
         return self.parse_test_instance(self.current_test_data_df)
-
-    def save_model(self):
-        '''模型固化或以现有参数持久化，如果不做任何操作就能保存现有参数，这个就不用了'''
 
     def _train(self, train_data):
         '''训练模型的核心逻辑'''

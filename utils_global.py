@@ -4,6 +4,7 @@
 import pandas as pd
 import logging
 import random
+import json
 
 import conf
 from network.utils_net import *
@@ -66,7 +67,7 @@ def feature_column_struct(comp_info):
              "feature_name": comp_name + '_rpth_action',
              "dtype": 'double',
              "method": direct_numeric_method,
-             "use_embedding": False
+             "use_embedding": False,
              "network_usage": ['dense']
              },
             # 第4维：机会维修对部件状态提升水平
@@ -181,6 +182,10 @@ def select_best_action_agent(agent_pred_result, params, strategy = 'e-greedy'):
         else: #随机选一个
             agent_best_action_index = random.randrange(0, len(agent_pred_result))
     return agent_best_action_index
+
+def print_dict_formatted(dict_data):
+    '''将dict格式化输出，方便预览'''
+    print(json.dumps(dict_data, indent=4))
 
 # 暂时弃用的action设计方法
 # comp_action_fc = [
