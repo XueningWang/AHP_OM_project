@@ -16,6 +16,7 @@ def weibull_rand(alpha=1,beta=1):
     return beta*math.pow(-np.log(u),1/alpha)
 
 # 随机数生成器
+# TODO:9.20 需要修改参数，将故障率提升之后对寿命分布的影响考虑在内
 def generate_random_lifetime(distribution, dist_args, type='single', num=1):
     '''给出一个部件在某个状态上的寿命(WEIBULL)或疏水单位量两次产生的间隔时间(EXPONENTIAL)'''
 

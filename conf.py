@@ -62,6 +62,11 @@ WEIBULL_THETA = {'P': 0.01, 'Q': 0.01, 'H': 0.01,'K': 0.01, 'I': 0.01, 'J': 0.01
 FAILURE_RATE_PARMS_a = 0.05
 FAILURE_RATE_PARMS_b = 1.05
 INFINITE_TIME = 99999
+DRAINWATER_LAMBDA = 0.05
+
+## TODO:疏水产生过程参数矫正
+DRAINWATER_UNIT = 1
+
 
 ## TODO:成本相关参数
 def cost_func(x):
