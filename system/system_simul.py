@@ -57,7 +57,15 @@ class AHPSystemSimulator:
         self.drainwater_unit = conf.DRAINWATER_UNIT
         self.acc_drainwater = [0] * self.num_heater
         self.drainwater_next_tt_arival = [0] * self.num_heater
-        self.drainwater_tta_list = []
+        self.drainwater_tta_list = [] # 多个疏水阀的疏水产生过程都由同一组参数决定，因此不分开生成
+        # 疏水器和加热器对应关系
+        heater_index = [i for i in range(len(self.num_comp)) if self.system_comp_info[i][component_type] == 'H']
+        drain_index = [i for i in range(len(self.num_comp)) if self.system_comp_info[i][component_type] == 'K']
+        self.heater_drain_match = dict(zip(heater_index, drain_index))
+        self.heater_hindex = [{heater_index[j]: j} for j in range(len(heater_index))] # 表征某个加热器是第几个加热器的index
+        # CHECK
+        if self.num_heater != len(heater_index):
+            print("FIX ME NOW. Unequal heater numbers! designed: %d, implemented: %d" %(self.num_heater, len(heater_index)))
 
     # 功能1：模拟系统内部的状态老化、状态依赖和条件响应过程
     def gen_deteriorate_ttf(self):
@@ -70,31 +78,30 @@ class AHPSystemSimulator:
             self.ttf[ci] = generate_random_lifetime(distribution='weibull', dist_args=dist_parms)
         return 0
     def gen_drainwater_ttf(self):
-        if len(self.drainwater_tta_list) == 0:
-            self.drainwater_tta_list = generate_random_lifetime(distribution='exp', dist_args={'lambda': self.drainwater_lambda}, type='batch', num=10000)
+        if len(self.drainwater_tta_list) <= self.num_heater:
+            self.drainwater_tta_list.extend(generate_random_lifetime(distribution='exp', dist_args={'lambda': self.drainwater_lambda}, type='batch', num=10000))
         for hi in range(len(self.num_heater)):
             self.drainwater_next_tt_arival[hi] = self.drainwater_tta_list.pop(0)
-
     def gen_drain_dependence(self):
-
-
-        return 0
+        self.gen_drainwater_ttf()
+        for h,d in self.heater_drain_match.items():
+            h_hindex = self.heater_hindex[h]
+            self.ttf[h] = min(self.drainwater_next_tt_arival[h_hindex], self.ttf[d]) # 加热器下次转移的时间，是下次疏水阀转移和下次疏水产生二者中更近的那个
+            h_state = self.acc_drainwater[h_hindex] + self.drainwater_unit - self.current_state[d][0] # 当前累积水量（上一时刻加热器疏水量）+一单位新产生疏水-疏水阀排水能力
+            h_state = 0 if h_state < 0 else h_state #如果可以完全疏水，此时疏水量应为0
+            self.current_state[h] = h_state
+            self.acc_drainwater[h_hindex] = h_state
 
     def update_next_epoch(self):
         '''根据各部件寿命和维修活动，更新下一个系统转移的时间节点（预计最早的一个）'''
         # 产生接下来预计的状态转移时间
         self.gen_deteriorate_ttf()
         self.gen_drainwater_ttf()
-
         # 维修活动前，需要特殊处理且影响下一个决策时间点的：加热器状态（与自身故障率无关，由现存疏水量决定）
-
-        # 维修活动前，需要特殊处理、但瞬时转移的：加热器水量过多->疏水阀打开；系统水量不足->旁路阀逐个打开
-        def gen_drain_guard():
-            return 0
-        def gen_bypath_guard():
-            return 0
-
+        self.gen_drain_dependence()
         # 判断下一个决策时间点，组织好所有部件在该点的状态
+        tt_next_epoch = min(self.ttf)
+        self.time = self.time + tt_next_epoch
 
     # 功能1
     def exec_action(self, action):
@@ -102,8 +109,15 @@ class AHPSystemSimulator:
         # action是organized格式
         # 8.21更新：action是dict类型，即{comp_index : [comp_action]}
 
+        # 记录部件是否被维修或更换的时间点
+
         # 维修活动后，需要更新状态的：新的故障率计算
         def update_failure_rate():
+            return 0
+        # 维修活动后，需要特殊处理的条件响应：加热器水量过多->疏水阀打开；系统水量不足->旁路阀逐个打开
+        def gen_drain_guard():
+            return 0
+        def gen_bypath_guard():
             return 0
 
     # 功能1
