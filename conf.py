@@ -31,8 +31,8 @@ SYSTEM_COMPONENT = [
     {"index": 18, "name": 'HP_2_H2_I', "valve_type": 'VL', "path_type": 'HP', "path_index": 2, "heater_index": 2, "component_type": 'I', "num_states": NUM_STATE_VALVE},
     {"index": 19, "name": 'HP_2_H2_J', "valve_type": 'VL', "path_type": 'HP', "path_index": 2, "heater_index": 2, "component_type": 'J', "num_states": NUM_STATE_VALVE},
 
-    {"index": 20, "name": 'NHP_3_R', "valve_type": 'VL', "path_type": 'NHP', "path_index": 3, "component_type": 'R', "num_states": NUM_STATE_VALVE},
-    {"index": 21, "name": 'NHP_3_R', "valve_type": 'VL', "path_type": 'NHP', "path_index": 3, "component_type": 'R', "num_states": NUM_STATE_VALVE},
+    {"index": 20, "name": 'NHP_3_R', "valve_type": 'VL', "path_type": 'NHP', "path_index": 3, "component_type": 'R', "num_states": NUM_STATE_VALVE, "NHP_valve_index": 1},
+    {"index": 21, "name": 'NHP_4_R', "valve_type": 'VL', "path_type": 'NHP', "path_index": 4, "component_type": 'R', "num_states": NUM_STATE_VALVE, "NHP_valve_index": 2}
 ]
 COMPONENT_TYPE_MAPPING = {
     'P': '进口隔离阀',
@@ -67,6 +67,10 @@ DRAINWATER_LAMBDA = 0.05
 ## TODO:疏水产生过程参数矫正
 DRAINWATER_UNIT = 1
 
+## TODO:条件相应参数矫正
+DRAINWATER_GUARD_THRESHOLD = 0.8*NUM_STATE_NONVALVE
+SYS_VOLUME_THRESHOLD_RATIO = 0.8
+SYS_VOLUME_THRESHOLD_RATIO_UNGUARD = 0.95
 
 ## TODO:成本相关参数
 def cost_func(x):
