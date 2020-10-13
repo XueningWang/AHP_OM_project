@@ -149,7 +149,7 @@ class AHPSystemSimulator:
             if comp_action[5] == 1:
                 self.current_state[ci][0], self.current_state[ci][1] = 0, 0
                 record["RP"].append(ci)
-            # 优先进行机会维修 TODO: 10.6加上一维是否进行机会维修的ACTION
+            # 优先进行机会维修 TODO: 一个之前没有考虑到的点：需要保证只有机会出现时（其他部件在修），才进行机会维修
             elif comp_action[6] == 1:
                 om_degree = min(self.current_state[ci][1], comp_action[3])
                 self.current_state[ci][1] -= om_degree
