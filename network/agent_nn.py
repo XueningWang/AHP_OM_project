@@ -20,15 +20,17 @@ class AgentDeepNetwork:
         self.shuffle_buffer_size = conf.SHUFFLE_BUFFER_SIZE
         self.train_verbose_step = conf.TRAIN_VERBOSE_STEP
         self.model_dir = conf.MODEL_DIRS[agent_index]
+        self.nn_structure_version = conf.NN_STRUCTURE_VERSION
 
     def init_network(self):
         '''按照配置，构建一个神经网络结构'''
+        # TODO:网络结构、训练配置都可以继续改进
         # 构建网络结构
-        if self.conf.NN_STRUCTURE_VERSION == 'wide_and_deep_v1':
-            sparse_fc = []
-            dense_fc = []
+        if self.nn_structure_version == 'wide_and_deep_v1':
+            sparse_fc, dense_fc = [], []
+            sparse_fc_name, dense_fc_name = [], []
             for comp_info in self.agent_comp_info:
-                for info in [comp_info['comp_state_fc'], comp_info['comp_action_info']]:
+                for info in comp_info['comp_state_fc']+comp_info['comp_action_fc']:
                     feature_name = info['flatten_column_name']
                     method = info['method']
                     bucket_size = info.get('int_bucket_size', 0)
@@ -40,8 +42,16 @@ class AgentDeepNetwork:
                         feature_column = tf.feature_column.embedding_column(feature_column, dimension = embed_vec_size)
                     if 'sparse' in network_usage:
                         sparse_fc.append(feature_column)
+                        sparse_fc_name.append(feature_name)
                     if 'dense' in network_usage:
                         dense_fc.append(feature_column)
+                        dense_fc_name.append(feature_name)
+
+            #DEBUG
+            print("Sparse feature:\n", sparse_fc_name)
+            print("Dense feature:\n", dense_fc_name)
+
+            logging.info("Done feature setting.")
 
             # 配置神经网络训练config
             config = tf.estimator.RunConfig(
@@ -61,13 +71,15 @@ class AgentDeepNetwork:
                 # dense settings
                 dnn_feature_columns=dense_fc,
                 dnn_hidden_units=conf.WD_DENSE_LAYERS,
-                dnn_optimizer=tf.train.ProximalAdagradOptimizer(  #NOTE:可以升级为学习率decay形式，见https://www.tensorflow.org/api_docs/python/tf/estimator/DNNLinearCombinedRegressor
+                dnn_optimizer=tf.compat.v1.train.ProximalAdagradOptimizer(  #NOTE:可以升级为学习率decay形式，见https://www.tensorflow.org/api_docs/python/tf/estimator/DNNLinearCombinedRegressor
                     learning_rate = conf.WD_LEARNING_RATE,
                     l1_regularization_strength=conf.WD_L1_REGULAR_STRENGTH,
                     l2_regularization_strength=conf.WD_L2_REGULAR_STRENGTH),
                 config=config
             )
             self.estimator = estimator
+
+        logging.info("Done network structure and training config.")
 
     def map_train_data(self, data):
         feature = {}

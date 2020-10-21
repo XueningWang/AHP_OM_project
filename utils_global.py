@@ -113,6 +113,8 @@ def feature_column_struct(comp_info):
 
 ## TODO: 架构组织，把一次调度只用一次的放在这，可能多次使用的放到util里面
 def construct_comp_info():
+    logging.info("Now constructing system components' info")
+
     # 构造系统部件信息
     sys_comp_info = conf.SYSTEM_COMPONENT
     num_comp = len(sys_comp_info)
@@ -124,8 +126,6 @@ def construct_comp_info():
     for i in range(num_comp): #对每个component
         comp_info = sys_comp_info[i]
         comp_state_fc, comp_action_fc = feature_column_struct(comp_info)
-        sys_comp_info[i]['comp_state_fc'] = comp_state_fc
-        sys_comp_info[i]['comp_action_fc'] = comp_action_fc
         for j in range(len(comp_state_fc)): #对每个状态维度
             s_column_name = str(i) + '_' + str(j) + '_' + comp_state_fc[j]['feature_name']
             comp_state_fc[j]["flatten_column_name"] = s_column_name
@@ -134,6 +134,8 @@ def construct_comp_info():
             a_column_name = str(i) + '_' + str(k) + '_' + comp_action_fc[k]['feature_name']
             comp_action_fc[k]["flatten_column_name"] = a_column_name
             a_flatten_colname_list[i].append(a_column_name)
+        sys_comp_info[i]['comp_state_fc'] = comp_state_fc
+        sys_comp_info[i]['comp_action_fc'] = comp_action_fc
 
     # 拉平成列表：系统全部列
     flatten_colname_list = [s_cn for comp_s_cn in s_flatten_colname_list for s_cn in comp_s_cn] + \
@@ -152,13 +154,15 @@ def construct_comp_info():
     flatten_colname_list_agents = [[s_cn for s_cn in s_flatten_colname_list_agent[i]] + [a_cn for a_cn in a_flatten_colname_list_agent[i]] for i in range(num_agents)]
 
     # DEBUG
-    print("construct_comp_info preview - sys_comp_info")
-    for ci in sys_comp_info:
-        print("Comp Index: ", ci['index'])
-        print(ci)
+    # print("construct_comp_info preview - sys_comp_info")
+    # for ci in sys_comp_info:
+    #     print("Comp Index: ", ci['index'])
+    #     print(ci)
 
+    logging.info("Done constructing system components' info.")
     return sys_comp_info, comp_agent_mapping, flatten_colname_list, flatten_colname_list_agents
 
+# TODO:10.21调试
 # 样本数据的组织形式转换
 def map_flatten_dict(organized_sample_one):
     comp_states_value = organized_sample_one[0]

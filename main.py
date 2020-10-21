@@ -15,41 +15,43 @@ from utils_global import *
 logging.basicConfig(level=10) #DEBUG level
 
 class MaintainWorker:
-    def __init__(self):
-        self.current_sample_collection_org = []
-        self.agents = conf.AGENT_COMPONENTS
-        self.num_agents = len(self.agents)
-        self.action_select_strategy = conf.ACTION_SELECT_STRATEGY
-        self.action_select_params = conf.ACTION_SELECT_PARAMS
-        self.agent_nn_batch_size = conf.BATCH_SIZE
-        self.termination_criterion = conf.TERMINATION_CRITERION
-        self.max_termination_num_iteration = conf.MAX_TERMINATION_NUM_ITERATION
-        # 部件信息初始化
+    def initialization(self):
+        '''系统仿真模块、神经网络模块初始化；参数和中间变量初始化'''
+        # 部件信息
         self.sys_comp_info, self.comp_agent_mapping, self.flatten_colname_list, self.flatten_colname_list_agents = construct_comp_info()
         self.num_comp = len(self.sys_comp_info)
-        self.length_of_comp_action = len(self.sys_comp_info[0]['comp_action_fc'])  # CHECK: 一个action的维度，应该是6
-        # 历史样本存储和回放
-        self.history_memory_df = pd.DataFrame(columns = self.flatten_colname_list.extend(['total_epoch', 'train_epoch']))
-        self.replay_one_batch_size = conf.REPLAY_ONE_BATCH_SIZE
-        self.replay_batch_num = conf.REPLAY_BATCH_NUM
-        self.replay_after_epoch = conf.REPLAY_AFTER_EPOCH
+        self.length_of_comp_action = len(self.sys_comp_info[0]['comp_action_fc'])
+        self.agents = conf.AGENT_COMPONENTS
+        self.num_agents = len(self.agents)
 
-    def initialization(self):
-        '''全局初始化'''
         # 系统模块初始化
-        self.system_simulator = AHPSystemSimulator(self.sys_comp_info) #TODO:补充类初始化需要的参数
-        self.system_simulator.system_init() #TODO:补充系统初始化函数需要的参数
+        self.system_simulator = AHPSystemSimulator(self.sys_comp_info)
+        self.system_simulator.init_system()
 
-        # 各AGENT的神经网络初始化
+        # 神经网络模块初始化
         agents = conf.AGENT_COMPONENTS
         num_agent = len(agents)
         self.agent_nns = []
         for agent_index in range(num_agent):
             agent_comp_info = []
             for comp_index in agents[agent_index]:
-                agent_comp_info.append(sys_comp_info[comp_index])
+                agent_comp_info.append(self.sys_comp_info[comp_index])
             self.agent_nns.append(AgentDeepNetwork(agent_index, agents[agent_index], agent_comp_info))
-            self.agent_nns[agent_index].network_init()
+            self.agent_nns[agent_index].init_network()
+
+        # 行动选择
+        self.action_select_strategy = conf.ACTION_SELECT_STRATEGY
+        self.action_select_params = conf.ACTION_SELECT_PARAMS
+        # 训练过程
+        self.agent_nn_batch_size = conf.BATCH_SIZE
+        self.termination_criterion = conf.TERMINATION_CRITERION
+        self.max_termination_num_iteration = conf.MAX_TERMINATION_NUM_ITERATION
+        # 历史样本存储和回放
+        self.current_sample_collection_org = []
+        self.history_memory_df = pd.DataFrame(columns=self.flatten_colname_list.extend(['total_epoch', 'train_epoch']))
+        self.replay_one_batch_size = conf.REPLAY_ONE_BATCH_SIZE
+        self.replay_batch_num = conf.REPLAY_BATCH_NUM
+        self.replay_after_epoch = conf.REPLAY_AFTER_EPOCH
 
     def simulation(self, selected_action = None): #默认selected_action是None即不采取行动，用于initialization阶段自然转移
         '''系统采取action并进行仿真，直至遇到决策时间点，返回上次产生的成本，以及本次待干预的系统状态向量'''
@@ -114,6 +116,7 @@ class MaintainWorker:
                 selected_action_dict[comp_index] = agent_best_action[i] #CHECK: 两个i是否对齐（正确的部件对应正确的行动）
         return selected_action_dict
 
+    # TODO:10.21调试
     def sample_collect(self, system_states, selected_action_dict, reward):
         '''将系统产生的样本添加到当前样本集合中'''
         system_action_org = []
@@ -154,7 +157,7 @@ class MaintainWorker:
         self.total_epoch = 0
         self.train_epoch = 0
         _, system_states, feasible_actions = self.simulation() #第一步冷启动
-        while not is_terminate(self.total_epoch, self.termination_criterion, self.max_termination_num_iteration):
+        while not conf.is_terminate(self.total_epoch, self.termination_criterion, self.max_termination_num_iteration):
             self.total_epoch += 1 #第一步索引是epoch=1
             selected_action_dict = self.decision(system_states, feasible_actions)
             reward, system_states, feasible_actions = self.simulation(selected_action_dict)
@@ -172,5 +175,5 @@ class MaintainWorker:
 
 if __name__ == "__main__":
     maintain_worker = MaintainWorker()
-    # maintain_worker._go_to_work()
+    maintain_worker._go_to_work()
     # maintain_worker._report_kpi()
