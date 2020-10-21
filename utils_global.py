@@ -98,10 +98,71 @@ def feature_column_struct(comp_info):
              "use_embedding": True,
              "embed_vec_size": conf.ACTION_REPLACE_EMBED_VECSIZE,
              "network_usage": ['sparse']
-             }
+             },
+            # 第7维：是否进行机会维修
+            {"component_index": comp_index,
+             "feature_name": comp_name + '_isom_action',
+             "dtype": 'int',
+             "method": categorical_binary_method,
+             "use_embedding": True,
+             "embed_vec_size": conf.ACTION_OM_EMBED_VECSIZE,
+             "network_usage": ['sparse']
+            },
     ]
     return comp_state_fc, comp_action_fc
 
+## TODO: 架构组织，把一次调度只用一次的放在这，可能多次使用的放到util里面
+def construct_comp_info():
+    logging.info("Now constructing system components' info")
+
+    # 构造系统部件信息
+    sys_comp_info = conf.SYSTEM_COMPONENT
+    num_comp = len(sys_comp_info)
+    sys_comp_info = add_use_embed_info(sys_comp_info)
+    s_flatten_colname_list = [[]] * num_comp
+    a_flatten_colname_list = [[]] * num_comp
+
+    # 生成和组织列名
+    for i in range(num_comp): #对每个component
+        comp_info = sys_comp_info[i]
+        comp_state_fc, comp_action_fc = feature_column_struct(comp_info)
+        for j in range(len(comp_state_fc)): #对每个状态维度
+            s_column_name = str(i) + '_' + str(j) + '_' + comp_state_fc[j]['feature_name']
+            comp_state_fc[j]["flatten_column_name"] = s_column_name
+            s_flatten_colname_list[i].append(s_column_name)
+        for k in range(len(comp_action_fc)): #对每个行动维度
+            a_column_name = str(i) + '_' + str(k) + '_' + comp_action_fc[k]['feature_name']
+            comp_action_fc[k]["flatten_column_name"] = a_column_name
+            a_flatten_colname_list[i].append(a_column_name)
+        sys_comp_info[i]['comp_state_fc'] = comp_state_fc
+        sys_comp_info[i]['comp_action_fc'] = comp_action_fc
+
+    # 拉平成列表：系统全部列
+    flatten_colname_list = [s_cn for comp_s_cn in s_flatten_colname_list for s_cn in comp_s_cn] + \
+                            [a_cn for comp_a_cn in a_flatten_colname_list for a_cn in comp_a_cn]#CHECK: 顺序
+
+    # 拉平成列表：按照agent分开组织
+    agents = conf.AGENT_COMPONENTS
+    comp_agent_mapping = revert_agent_comp_mapping(agents) # 构造倒排mapping
+    num_agents = len(agents)
+    s_flatten_colname_list_agent = [[]] * num_agents
+    a_flatten_colname_list_agent = [[]] * num_agents
+    for i in range(num_comp):
+        comp_agent_index = comp_agent_mapping[str(i)]
+        s_flatten_colname_list_agent[comp_agent_index].extend(s_flatten_colname_list[i])
+        a_flatten_colname_list_agent[comp_agent_index].extend(a_flatten_colname_list[i])
+    flatten_colname_list_agents = [[s_cn for s_cn in s_flatten_colname_list_agent[i]] + [a_cn for a_cn in a_flatten_colname_list_agent[i]] for i in range(num_agents)]
+
+    # DEBUG
+    # print("construct_comp_info preview - sys_comp_info")
+    # for ci in sys_comp_info:
+    #     print("Comp Index: ", ci['index'])
+    #     print(ci)
+
+    logging.info("Done constructing system components' info.")
+    return sys_comp_info, comp_agent_mapping, flatten_colname_list, flatten_colname_list_agents
+
+# TODO:10.21调试
 # 样本数据的组织形式转换
 def map_flatten_dict(organized_sample_one):
     comp_states_value = organized_sample_one[0]

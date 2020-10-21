@@ -8,10 +8,13 @@ from .utils_sys import *
 
 class AHPSystemSimulator:
     def __init__(self, system_comp_info):
-        '''初始化类内部变量'''
+        self.system_comp_info = system_comp_info  # 系统部件信息，来自main.py中的construct_comp_info()函数
+
+    # 模块：初始化
+    def init_system(self): #外部函数前面带下划线，"_func(xxx)"，内部私有函数不带，即"func(xxx)"
+        '''系统初始化；仿真时间归零；中间变量初始化'''
         # 部件配置初始化
-        self.system_comp_info = system_comp_info # 系统部件信息，来自main.py中的construct_comp_info()函数
-        self.num_comp = len(system_comp_info)
+        self.num_comp = len(self.system_comp_info)
         self.current_action_best = []
         # 设定参数
         self.weibull_beta = conf.WEIBULL_BETA
@@ -19,25 +22,21 @@ class AHPSystemSimulator:
         self.a_parm = conf.FAILURE_RATE_PARMS_a
         self.b_parm = conf.FAILURE_RATE_PARMS_b
         self.drainwater_lambda = conf.DRAINWATER_LAMBDA
-
-    # 模块：初始化
-    def init_system(self): #外部函数前面带下划线，"_func(xxx)"，内部私有函数不带，即"func(xxx)"
-        '''对系统整体做初始化：部件状态归为完美状态等'''
-        max_state = {'VL': conf.NUM_STATE_VALVE, 'NVL': conf.NUM_STATE_NONVALVE}
-        init_failure_rate = 0
-        init_bypath_vl_spare = 1
-        # 仿真系统时间
+        # 仿真时间
         self.time = 0
         self.epoch = 0
         # 系统部件
         self.current_state = [[]] * self.num_comp
+        init_perfect_state = 0
+        init_failure_rate = 0
+        init_bypath_vl_spare = 1
         for sc_info in self.system_comp_info:
             index = sc_info['index']
             vl_type = sc_info['valve_type']
             component_type = sc_info['component_type']
-            initial_comp_state = [max_state[vl_type], init_failure_rate]
+            initial_comp_state = [init_perfect_state, init_failure_rate]
             if component_type == 'R':
-                initial_comp_state.extend(init_bypath_vl_spare)
+                initial_comp_state.append(init_bypath_vl_spare)
             self.current_state[index] = initial_comp_state
         # 部件上次维修和更换时间
         self.last_maintenance_time = [0] * self.num_comp
@@ -56,8 +55,8 @@ class AHPSystemSimulator:
         self.drainwater_next_tt_arival = [0] * self.num_heater
         self.drainwater_tta_list = [] # 多个疏水阀的疏水产生过程都由同一组参数决定，因此不分开生成
         # 疏水器和加热器对应关系
-        heater_index = [i for i in range(len(self.num_comp)) if self.system_comp_info[i][component_type] == 'H']
-        drain_index = [i for i in range(len(self.num_comp)) if self.system_comp_info[i][component_type] == 'K']
+        heater_index = [i for i in range(self.num_comp) if self.system_comp_info[i]['component_type'] == 'H']
+        drain_index = [i for i in range(self.num_comp) if self.system_comp_info[i]['component_type'] == 'K']
         self.heater_drain_match = dict(zip(heater_index, drain_index))
         self.heater_hindex = [{heater_index[j]: j} for j in range(len(heater_index))] # 表征某个加热器是第几个加热器的index
         # 疏水条件响应
@@ -76,6 +75,8 @@ class AHPSystemSimulator:
         # 维修活动记录
         self.action_records = []
         self.current_epoch_cost = 0
+
+        logging.info("Done system simulator init.")
 
     #模块：模拟系统内部的状态老化、状态依赖和条件响应过程
     def gen_deteriorate_ttf(self):
@@ -149,7 +150,7 @@ class AHPSystemSimulator:
             if comp_action[5] == 1:
                 self.current_state[ci][0], self.current_state[ci][1] = 0, 0
                 record["RP"].append(ci)
-            # 优先进行机会维修 TODO: 10.6加上一维是否进行机会维修的ACTION
+            # 优先进行机会维修 TODO: 一个之前没有考虑到的点：需要保证只有机会出现时（其他部件在修），才进行机会维修
             elif comp_action[6] == 1:
                 om_degree = min(self.current_state[ci][1], comp_action[3])
                 self.current_state[ci][1] -= om_degree
@@ -175,34 +176,31 @@ class AHPSystemSimulator:
         record["cost"] = self.current_epoch_cost
         self.action_records.append(record)
 
-    # 模块：成本计算
+    # 功能函数：成本计算
     def calc_cost(self):
         '''用conf里的参数配置写好成本计算函数，计算一次维修活动的成本'''
         # 成本应当包括：维修和更换成本、条件响应成本、系统水量水温的penalty
-        return cost
+        return 0
 
-    # 功能1
+    # 功能函数：计算系统表现指标
     def calc_system_performance(self):
         '''由系统各部件状态计算系统水量、加热效率这两个指标'''
+        sys_volume, sys_heating_efficiency = 0, 0
         return sys_volume, sys_heating_efficiency
 
     # 对外接口
-    # 功能2
     def _progress_one_epoch(self):
         '''产出每个决策时间点，将可行action与系统状态拼接后返回'''
         # 顺序调用以下函数：update_next_epoch
         # 应当返回system_states
+        return 0
 
-    # 功能2
-    # 输入与输出样本数据、与神经网络沟通相关
     def _update_feasible_action(self):  # wxn
         '''拿到一个决策时间点的系统状态后，将每个维度可行的action遍历'''
         # 返回值与system org action同形状，每个action位点上都是一个所有feasible的值的list
         # 注意辅助量的拼接。比如距上次维修时间、是否更换，都需要在这一步提供额外的信息
-        feasible_actions
-        return feasible_actions
+        return 0 #feasible_actions
 
-    # 功能1
     def _progress_one_action(self, selected_action):
         '''拿到神经网络的预测结果后，选择action并执行，求算出系统成本'''
         # 顺序调用以下函数: exec_action, calc_cost; 选择最佳策略的部分拿到main中做了
