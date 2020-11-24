@@ -33,7 +33,7 @@ def feature_column_struct(comp_info):
              "network_usage": ['dense']
              }
         ]
-    if comp_info['component_type'] == "R":  # 疏水器单独加第三维特征，表示是否为备件状态
+    if comp_info['comp_type'] == "R":  # 疏水器单独加第三维特征，表示是否为备件状态
         comp_state_fc.append({"component_index": comp_index,
                               "feature_name": comp_name + '_isactive_state',
                               "dtype": 'int',
@@ -112,11 +112,10 @@ def feature_column_struct(comp_info):
     return comp_state_fc, comp_action_fc
 
 ## TODO: 架构组织，把一次调度只用一次的放在这，可能多次使用的放到util里面
-def construct_comp_info():
+def construct_comp_info(sys_comp_info, agents):
     logging.info("Now constructing system components' info")
 
     # 构造系统部件信息
-    sys_comp_info = conf.SYSTEM_COMPONENT
     num_comp = len(sys_comp_info)
     sys_comp_info = add_use_embed_info(sys_comp_info)
     s_flatten_colname_list = [[]] * num_comp
@@ -142,13 +141,12 @@ def construct_comp_info():
                             [a_cn for comp_a_cn in a_flatten_colname_list for a_cn in comp_a_cn]#CHECK: 顺序
 
     # 拉平成列表：按照agent分开组织
-    agents = conf.AGENT_COMPONENTS
     comp_agent_mapping = revert_agent_comp_mapping(agents) # 构造倒排mapping
     num_agents = len(agents)
     s_flatten_colname_list_agent = [[]] * num_agents
     a_flatten_colname_list_agent = [[]] * num_agents
     for i in range(num_comp):
-        comp_agent_index = comp_agent_mapping[str(i)]
+        comp_agent_index = comp_agent_mapping[i]
         s_flatten_colname_list_agent[comp_agent_index].extend(s_flatten_colname_list[i])
         a_flatten_colname_list_agent[comp_agent_index].extend(a_flatten_colname_list[i])
     flatten_colname_list_agents = [[s_cn for s_cn in s_flatten_colname_list_agent[i]] + [a_cn for a_cn in a_flatten_colname_list_agent[i]] for i in range(num_agents)]
@@ -212,12 +210,12 @@ def split_agent_flatten_sample(flattened_sample_df, flatten_colname_list, agents
         agent_flatten_df_list.append(flattened_sample_df.loc[:, agent_colnames])
     return agent_flatten_df_list
 
-def revert_agent_comp_mapping(agents):
+def revert_agent_comp_mapping(agents): #debug DONE
     comp_agent_mapping = {}
     a_cnt = 0
     for a in agents:
         for j in a:
-            comp_agent_mapping[str(j)] = a_cnt
+            comp_agent_mapping[j] = a_cnt
         a_cnt += 1
     return comp_agent_mapping
 

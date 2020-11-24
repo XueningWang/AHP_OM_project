@@ -33,9 +33,9 @@ class AHPSystemSimulator:
         for sc_info in self.system_comp_info:
             index = sc_info['index']
             vl_type = sc_info['valve_type']
-            component_type = sc_info['component_type']
+            comp_type = sc_info['comp_type']
             initial_comp_state = [init_perfect_state, init_failure_rate]
-            if component_type == 'R':
+            if comp_type == 'R':
                 initial_comp_state.append(init_bypath_vl_spare)
             self.current_state[index] = initial_comp_state
         # 部件上次维修和更换时间
@@ -55,8 +55,8 @@ class AHPSystemSimulator:
         self.drainwater_next_tt_arival = [0] * self.num_heater
         self.drainwater_tta_list = [] # 多个疏水阀的疏水产生过程都由同一组参数决定，因此不分开生成
         # 疏水器和加热器对应关系
-        heater_index = [i for i in range(self.num_comp) if self.system_comp_info[i]['component_type'] == 'H']
-        drain_index = [i for i in range(self.num_comp) if self.system_comp_info[i]['component_type'] == 'K']
+        heater_index = [i for i in range(self.num_comp) if self.system_comp_info[i]['comp_type'] == 'H']
+        drain_index = [i for i in range(self.num_comp) if self.system_comp_info[i]['comp_type'] == 'K']
         self.heater_drain_match = dict(zip(heater_index, drain_index))
         self.heater_hindex = [{heater_index[j]: j} for j in range(len(heater_index))] # 表征某个加热器是第几个加热器的index
         # 疏水条件响应
@@ -80,7 +80,7 @@ class AHPSystemSimulator:
 
     #模块：模拟系统内部的状态老化、状态依赖和条件响应过程
     def gen_deteriorate_ttf(self):
-        comp_type = [sc_info['component_type'] for sc_info in self.system_comp_info]
+        comp_type = [sc_info['comp_type'] for sc_info in self.system_comp_info]
         comp_beta = map(self.weibull_beta, comp_type)
         comp_theta = map(self.weibull_theta, comp_type)
         for ci in range(len(self.num_comp)):
@@ -182,7 +182,7 @@ class AHPSystemSimulator:
         # 成本应当包括：维修和更换成本、条件响应成本、系统水量水温的penalty
         return 0
 
-    # 功能函数：计算系统表现指标
+    # 功能函数：计算系统表现指标 - 11.18 变成UGF的计算
     def calc_system_performance(self):
         '''由系统各部件状态计算系统水量、加热效率这两个指标'''
         sys_volume, sys_heating_efficiency = 0, 0
