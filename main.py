@@ -8,20 +8,20 @@ import random
 
 import conf
 from network.agent_nn import AgentDeepNetwork
-from system.system_simul import AHPSystemSimulator
+from system.system_simul_v2 import AHPSystemSimulator
 from utils_global import *
 
 # 配置日志输出
 logging.basicConfig(level=10) #DEBUG level
 
 class MaintainWorker:
-    def initialization(self):
+    def initialization(self): #debug DONE
         '''系统仿真模块、神经网络模块初始化；参数和中间变量初始化'''
         # 部件信息
-        self.sys_comp_info, self.comp_agent_mapping, self.flatten_colname_list, self.flatten_colname_list_agents = construct_comp_info()
+        self.agents = conf.AGENT_COMPONENTS
+        self.sys_comp_info, self.comp_agent_mapping, self.flatten_colname_list, self.flatten_colname_list_agents = construct_comp_info(conf.SYSTEM_COMPONENT, self.agents)
         self.num_comp = len(self.sys_comp_info)
         self.length_of_comp_action = len(self.sys_comp_info[0]['comp_action_fc'])
-        self.agents = conf.AGENT_COMPONENTS
         self.num_agents = len(self.agents)
 
         # 系统模块初始化
