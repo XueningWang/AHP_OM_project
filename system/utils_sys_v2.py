@@ -43,3 +43,5 @@ def generate_random_lifetime(distribution, dist_args, type='single', num=1):
     else:
         value = -1
     return value
+
+def calc_UGF():
