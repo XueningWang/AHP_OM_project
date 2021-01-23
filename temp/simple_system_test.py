@@ -11,7 +11,7 @@ para_c = 2.0
 load_lower_wl, load_upper_wu = 0, 1
 
 # 作图参数
-hazard_rate_y_ulim = 30000
+hazard_rate_y_ulim = 10000
 
 # test 威布尔分布
 t_points = range(0, 100, 1)
@@ -44,11 +44,11 @@ for t_value in t_points:
                                                       load_total_W, load_lower_wl, load_upper_wu)
         last_update_time = t_value
         next_update_time = update_time_list.pop(0) if len(update_time_list) > 0 else len(t_points)
-    hybrid_y_points.append(fn_h.evalf(subs = {time_t: t_value}))
-    lshared_y_points.append(lshared_fn_h.evalf(subs = {time_t: t_value}))
+    virtual_age = t_value - last_update_time
+    hybrid_y_points.append(fn_h.evalf(subs = {time_t: virtual_age}))
+    lshared_y_points.append(lshared_fn_h.evalf(subs = {time_t: virtual_age}))
 
 str_t_points = ','.join([str(i) for i in update_time_list_record])
-print(str_t_points)
 plot_scatter_chart(t_points, hybrid_y_points, "Hybrid hazard rate, update points %s"%str_t_points,
                    y_ulim = hazard_rate_y_ulim)
 plot_scatter_chart(t_points, lshared_y_points, "Hybrid hazard rate (load shared), update points %s"%str_t_points,
