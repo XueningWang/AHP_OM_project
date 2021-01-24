@@ -9,6 +9,32 @@ wb_para_beta, wb_para_theta = 2.5, 0.5
 para_a, para_b = 0.1, 1.2
 para_c = 2.0
 load_lower_wl, load_upper_wu = 0, 1
+## 系统串并联结构
+simple_sys_comp_index = [0, 2, 3, 10, 11, 13, 26, 27, 28]
+simple_sys_structure = {    # s for 串联，p for 并联, b for base（仅一部件）
+                            'sub1':
+                                {
+                                    'sub11': {'comp11': 0, 'type': 'b'},
+                                    'sub12':
+                                        {
+                                            'sub121': {'comp12': 2, 'type': 'b'},
+                                            'sub122': {'comp13': 3, 'type': 'b'},
+                                            'type': 's',
+                                        },
+                                     'type': 'p'
+                                },
+                            'sub2':
+                                {
+                                    'sub21':
+                                        {
+                                            'sub211': {'comp21': 10, 'type': 'b'},
+                                            'sub212': {'comp22': 11, 'type': 'b'},
+                                            'type': 'p',
+                                        },
+                                    'sub22': {'comp23': 13, 'type': 'b'},
+                                    'type': 's'
+                                },
+                            'type': 's'}
 
 # 作图参数
 hazard_rate_y_ulim = 10000
@@ -53,3 +79,7 @@ plot_scatter_chart(t_points, hybrid_y_points, "Hybrid hazard rate, update points
                    y_ulim = hazard_rate_y_ulim)
 plot_scatter_chart(t_points, lshared_y_points, "Hybrid hazard rate (load shared), update points %s"%str_t_points,
                    y_ulim = hazard_rate_y_ulim)
+
+# test UGF 计算
+## 模拟部件可靠性值
+rel_value_comps = {0: 0.280, 2: 0.083, 3: 0.928, 10: 0.003, 11: 0.234, 13: 0.794, 26: 0.542, 27: 0.001, 28: 0.836]
